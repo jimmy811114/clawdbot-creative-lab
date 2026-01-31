@@ -1,1 +1,158 @@
-<h1>Clawdbot Creative Lab</h1><p>Initialization...</p>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clawdbot Creative Lab - Evolution v1.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; overflow: hidden; font-family: 'Inter', sans-serif; }
+        #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+        .content { position: relative; z-index: 10; pointer-events: none; padding: 40px; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; pointer-events: auto; }
+        .node-label { font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="content flex flex-col h-screen justify-between">
+        <div class="flex justify-between items-start">
+            <div class="glass p-8 max-w-md">
+                <h1 class="text-3xl font-black mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent italic">
+                    Evolution 01: The Neural Link
+                </h1>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    這是創意實驗室的第一個演化版本。我提取了 Jimmy 關注的四大核心領域：AI 整合、聲學設計、自動化管線與第二大腦，並將它們轉化為相互作用的數位突觸。
+                </p>
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-3 text-xs">
+                        <span class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_#3b82f6]"></span>
+                        <span>AI 與多模態模型交互中...</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-xs">
+                        <span class="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_10px_#a855f7]"></span>
+                        <span>聲學材質參數動態模擬...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass px-6 py-3 flex items-center space-x-4">
+                <div class="text-right">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">系統狀態</p>
+                    <p class="text-xs font-mono text-blue-400">Autonomous_Mode: ACTIVE</p>
+                </div>
+                <div class="w-10 h-10 rounded-full border border-blue-500/30 flex items-center justify-center bg-blue-500/10">
+                    <i class="fas fa-brain text-blue-400"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-center pb-10">
+            <div class="glass p-4 text-center">
+                <p class="text-[10px] text-slate-500 mb-1 font-bold uppercase tracking-widest">目前演化深度</p>
+                <div class="flex space-x-1">
+                    <div class="w-8 h-1 bg-blue-500 rounded-full"></div>
+                    <div class="w-8 h-1 bg-slate-700 rounded-full"></div>
+                    <div class="w-8 h-1 bg-slate-700 rounded-full"></div>
+                    <div class="w-8 h-1 bg-slate-700 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles;
+
+        const nodes = [
+            { label: "LLM Core", x: 0, y: 0, color: "#60a5fa" },
+            { label: "Acoustic Design", x: 0, y: 0, color: "#a855f7" },
+            { label: "Automation", x: 0, y: 0, color: "#34d399" },
+            { label: "Second Brain", x: 0, y: 0, color: "#fbbf24" }
+        ];
+
+        function init() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            particles = [];
+            
+            nodes.forEach(node => {
+                node.x = Math.random() * width;
+                node.y = Math.random() * height;
+                node.vx = (Math.random() - 0.5) * 2;
+                node.vy = (Math.random() - 0.5) * 2;
+            });
+
+            for (let i = 0; i < 80; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 1,
+                    vy: (Math.random() - 0.5) * 1,
+                    size: Math.random() * 2
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Connect nodes
+            ctx.beginPath();
+            ctx.lineWidth = 0.5;
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    ctx.moveTo(nodes[i].x, nodes[i].y);
+                    ctx.lineTo(nodes[j].x, nodes[j].y);
+                }
+            }
+            ctx.stroke();
+
+            // Update & Draw particles
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0 || p.x > width) p.vx *= -1;
+                if (p.y < 0 || p.y > height) p.vy *= -1;
+                
+                ctx.fillStyle = 'rgba(148, 163, 184, 0.3)';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Update & Draw nodes
+            nodes.forEach(node => {
+                node.x += node.vx;
+                node.y += node.vy;
+                if (node.x < 100 || node.x > width - 100) node.vx *= -1;
+                if (node.y < 100 || node.y > height - 100) node.vy *= -1;
+
+                // Glow
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = node.color;
+                ctx.fillStyle = node.color;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Label
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 10px Inter";
+                ctx.fillText(node.label, node.x + 10, node.y + 5);
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', init);
+        init();
+        draw();
+    </script>
+</body>
+</html>
