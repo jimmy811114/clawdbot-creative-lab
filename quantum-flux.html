@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Flux Field - Clawdbot Creative Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: #000;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .overlay {
+            position: relative;
+            z-index: 10;
+            color: white;
+            text-align: center;
+            pointer-events: none;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 20;
+            color: #22d3ee;
+            text-decoration: none;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 1px solid #22d3ee;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        .back-link:hover {
+            background: #22d3ee;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">← Back to Nexus</a>
+    <canvas id="fluxCanvas"></canvas>
+    <div class="overlay">
+        <h1 class="text-4xl font-bold mb-2 tracking-tighter">QUANTUM FLUX</h1>
+        <p class="text-cyan-400 font-mono text-sm uppercase tracking-widest">Simulating Kinetic Field Resonance</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('fluxCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles;
+
+        const settings = {
+            particleCount: 150,
+            fieldForce: 0.05,
+            noiseScale: 0.005,
+            speed: 2
+        };
+
+        class Particle {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = 0;
+                this.vy = 0;
+                this.history = [];
+                this.maxHistory = 15;
+                this.hue = Math.random() * 60 + 180; // Cyan to Purple range
+            }
+
+            update(time) {
+                // Perlin-like noise field using Math.sin/cos for simplicity
+                const angle = (Math.sin(this.x * settings.noiseScale + time) + Math.cos(this.y * settings.noiseScale + time)) * Math.PI * 2;
+                
+                this.vx += Math.cos(angle) * settings.fieldForce;
+                this.vy += Math.sin(angle) * settings.fieldForce;
+                
+                this.vx *= 0.98; // Friction
+                this.vy *= 0.98;
+
+                this.x += this.vx * settings.speed;
+                this.y += this.vy * settings.speed;
+
+                this.history.push({x: this.x, y: this.y});
+                if (this.history.length > this.maxHistory) this.history.shift();
+
+                if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
+                    this.init();
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.moveTo(this.history[0].x, this.history[0].y);
+                for (let i = 1; i < this.history.length; i++) {
+                    ctx.lineTo(this.history[i].x, this.history[i].y);
+                }
+                ctx.strokeStyle = `hsla(${this.hue}, 80%, 60%, ${0.5})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            particles = Array.from({length: settings.particleCount}, () => new Particle());
+        }
+
+        function animate(time) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, width, height);
+            
+            particles.forEach(p => {
+                p.update(time * 0.001);
+                p.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>
