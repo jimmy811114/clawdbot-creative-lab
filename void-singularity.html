@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Void Singularity - Creative Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { margin: 0; background-color: #000; color: #fff; overflow: hidden; font-family: 'Inter', sans-serif; }
+        canvas { display: block; }
+        .ui-overlay {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .glass {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            pointer-events: auto;
+        }
+        .back-btn {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 10;
+        }
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+        .glow-text {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="ui-overlay">
+        <div class="glass max-w-sm">
+            <h1 class="text-2xl font-light tracking-widest mb-2 glow-text">虛空奇點 <span class="text-xs font-bold bg-white/10 px-2 py-0.5 rounded">VOID-01</span></h1>
+            <p class="text-gray-400 text-sm leading-relaxed mb-4">
+                引力異常偵測中。這個奇點模擬了物質被捲入無限深淵的視覺過程。點擊或拖動滑鼠以干擾重力場。
+            </p>
+            <div class="flex items-center space-x-4">
+                <div class="flex flex-col">
+                    <span class="text-[10px] uppercase tracking-tighter text-gray-500">Event Horizon</span>
+                    <span class="text-xs font-mono text-white" id="dist-display">0.00 LY</span>
+                </div>
+                <div class="h-8 w-px bg-white/10"></div>
+                <div class="flex flex-col">
+                    <span class="text-[10px] uppercase tracking-tighter text-gray-500">Entropy Rate</span>
+                    <span class="text-xs font-mono text-white">99.9%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="index.html" class="back-btn glass px-6 py-2 text-xs font-bold tracking-widest uppercase hover:bg-white/10 transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i> 返回總部
+    </a>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let mouse = { x: -1000, y: -1000, active: false };
+
+        class Particle {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                this.angle = Math.random() * Math.PI * 2;
+                this.distance = Math.random() * Math.max(width, height) * 0.6 + 50;
+                this.speed = (Math.random() * 0.02 + 0.005) * (this.distance < 200 ? 2 : 1);
+                this.size = Math.random() * 2 + 0.5;
+                this.color = this.getRandomColor();
+                this.alpha = Math.random() * 0.5 + 0.2;
+            }
+
+            getRandomColor() {
+                const colors = ['#fff', '#0cf', '#f0f', '#70f'];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.angle += this.speed;
+                
+                let targetDist = this.distance;
+                
+                // Mouse interaction
+                if (mouse.active) {
+                    const dx = mouse.x - width / 2;
+                    const dy = mouse.y - height / 2;
+                    const mouseAngle = Math.atan2(dy, dx);
+                    const mouseDist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    // Pull particles towards mouse or distort orbit
+                    const angleDiff = this.angle - mouseAngle;
+                    this.angle -= Math.sin(angleDiff) * 0.05;
+                }
+
+                // Spiral inwards
+                this.distance -= 0.5;
+                if (this.distance < 10) {
+                    this.init();
+                    this.distance = Math.max(width, height) * 0.6;
+                }
+
+                this.x = width / 2 + Math.cos(this.angle) * this.distance;
+                this.y = height / 2 + Math.sin(this.angle) * this.distance;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            particles = [];
+            for (let i = 0; i < 400; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            // Motion blur effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, width, height);
+
+            // Draw singularity core
+            const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, 50);
+            gradient.addColorStop(0, '#000');
+            gradient.addColorStop(0.8, '#000');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0.2)');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(width/2, height/2, 50, 0, Math.PI * 2);
+            ctx.fill();
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            // Update UI
+            if (document.getElementById('dist-display')) {
+                const d = (Math.random() * 0.05 + 1.22).toFixed(2);
+                document.getElementById('dist-display').innerText = `${d} LY`;
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousedown', () => mouse.active = true);
+        window.addEventListener('mouseup', () => mouse.active = false);
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        resize();
+        animate();
+    </script>
+</body>
+</html>
